@@ -1,0 +1,9 @@
+sudo apt-get install dkms
+git clone -b v5.6.4.2 https://github.com/aircrack-ng/rtl8812au.git
+cd rtl*
+sudo apt-get install bc raspberrypi-kernel-headers
+sed -i 's/CONFIG_PLATFORM_I386_PC = y/CONFIG_PLATFORM_I386_PC = n/g' Makefile
+sed -i 's/CONFIG_PLATFORM_ARM64_RPI = n/CONFIG_PLATFORM_ARM64_RPI = y/g' Makefile
+sed -i 's/^dkms build/ARCH=arm dkms build/' dkms-install.sh
+sed -i 's/^MAKE="/MAKE="ARCH=arm\ /' dkms.conf
+sudo ./dkms-install.sh

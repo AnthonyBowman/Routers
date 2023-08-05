@@ -1,0 +1,8 @@
+sudo cp 8812au.ko /lib/modules/4.19.97-v8+/kernel/drivers/net/wireless
+sudo cp 8812au.ko /lib/modules/4.19.97-v7l+/kernel/drivers/net/wireless
+sudo cp 8812au.ko /lib/modules/4.19.97-v7+/kernel/drivers/net/wireless
+sudo cp 8812au.ko /lib/modules/4.19.97+/kernel/drivers/net/wireless
+
+ 
+4.19.97-v7+
+4.19.97+

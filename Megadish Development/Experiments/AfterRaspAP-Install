@@ -1,0 +1,21 @@
+cd /var/www/html
+sudo nano includes/config.php
+
+#Change the following setting in includes/config.php to wlan1:
+#define('RASPI_WIFI_CLIENT_INTERFACE', 'wlan1')
+
+cd ../../..
+
+#add the following to /etc/dhcpcd.conf:
+interface wlan0
+static ip_address=10.3.141.1/24
+static domain_name_servers=1.1.1.1
+nohook wpa_supplicant
+
+sudo systemctl restart hostapd.service
+
+
+cd /etc/default/crda
+sudo nano crda
+
+

@@ -1,0 +1,1 @@
+sudo mv /media/pi/SanDiskUSB/Temp/dnsmasq.conf /etc/dnsmasq.conf

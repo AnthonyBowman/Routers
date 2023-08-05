@@ -1,0 +1,27 @@
+sudo nano /etc/network/interfaces
+
+
+# Include files from /etc/network/interfaces.d:
+source-directory /etc/network/interfaces.d
+
+# wlan0
+iface wlan0 inet manual
+
+# wlan1
+iface wlan1 inet dhcp  
+
+# Include files from /etc/network/interfaces.d: source-directory /etc/network/i$
+
+auto lo iface lo inet loopback
+
+# wlan0
+allow-hotplug wlan0
+iface wlan0 inet manual
+
+# wlan1
+allow-hotplug wlan1
+iface wlan1 inet dhcp
+
+wpa-conf/etc/wpa_supplicant/wpa_supplicant.conf
+
+
