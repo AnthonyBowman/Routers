@@ -6,7 +6,7 @@ import paho.mqtt.client as mqtt
 import subprocess
 import re
 from WifiNetwork import WifiNetwork
-import pywifi
+import piwifi
 
 # variables - MQTT broker details
 broker_address = "localhost"
