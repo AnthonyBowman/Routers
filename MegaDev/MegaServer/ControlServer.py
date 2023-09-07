@@ -31,7 +31,7 @@ def process_command (command, data):
     if command == "test":
         print("test")
     elif command=="GET-SSIDS":
-        ssids = list_available_ssids(1)  # Replace with the index of the desired interface
+        ssids = list_available_ssids("wlan0")  # Replace with the index of the desired interface
         client.publish(topic, ",".join(ssids))
     elif command=="GET-STORED":
         ssids = list_stored_ssids()
