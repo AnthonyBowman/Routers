@@ -37,7 +37,7 @@ def process_command (command, data):
         ssids = list_stored_ssids()
         client.publish(topic, ",".join(ssids))
     else:
-        print ("Command not recognised:" command)
+        print ("Command not recognised:" + command)
 
 # command functions
 def list_available_ssids(interface):
