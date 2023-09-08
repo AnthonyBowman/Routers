@@ -32,10 +32,10 @@ def process_command (command, data):
         print("test")
     elif command=="GET-SSIDS":
         ssids = list_available_ssids("wlan0")  # Replace with the index of the desired interface
-        client.publish(topic, ",".join(ssids))
+        client.publish("ResponseChannel", ",".join(ssids))
     elif command=="GET-STORED":
         ssids = list_stored_ssids()
-        client.publish(topic, ",".join(ssids))
+        client.publish("ResponseChannel", ",".join(ssids))
     else:
         print ("Command not recognised:" + command)
 

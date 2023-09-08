@@ -26,7 +26,7 @@ class SSIDListApp(App):
         # Send "GET-SSIDS" message to request SSID list
         self.mqtt_client.publish("CommandChannel", "GET-SSIDS,0")
 
-        self.mqtt_client.subscribe("CommandChannel")
+        self.mqtt_client.subscribe("ResponseChannel")
 
         return self.layout
 
