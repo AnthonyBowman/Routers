@@ -7,11 +7,12 @@ import subprocess
 import re
 from WifiNetwork import WifiNetwork
 import piwifi
+import logging
 
 # variables - MQTT broker details
 broker_address = "localhost"
 broker_port = 1883
-topic = "CommandChannel"
+topic = "Command"
 
 # path git pto wpa_supplicant.conf file
 wpa_supplicant_file = "/etc/wpa_supplicant/wpa_supplicant.conf"
@@ -32,10 +33,12 @@ def process_command (command, data):
         print("test")
     elif command=="GET-SSIDS":
         ssids = list_available_ssids("wlan0")  # Replace with the index of the desired interface
-        client.publish("ResponseChannel", ",".join(ssids))
+        #client.publish("ResponseChannel", ",".join(ssids))
+        client.publish("Response", "Megadish,Mounda")
+        print ("published to Response Megadish,Mounda")
     elif command=="GET-STORED":
         ssids = list_stored_ssids()
-        client.publish("ResponseChannel", ",".join(ssids))
+        client.publish("Response", ",".join(ssids))
     else:
         print ("Command not recognised:" + command)
 
@@ -105,7 +108,8 @@ def load_wifi_networks(file_path):
     return networks
 
 # program start
-client = mqtt.Client()
+logging.basicConfig(level=logging.DEBUG)
+client = mqtt.Client(client_id="PiProgram")
 client.on_connect = on_connect
 client.on_message = on_message
 
