@@ -33,9 +33,9 @@ def process_command (command, data):
         print("test")
     elif command=="GET-SSIDS":
         ssids = list_available_ssids("wlan0")  # Replace with the index of the desired interface
-        #client.publish("ResponseChannel", ",".join(ssids))
-        client.publish("Response", "Megadish,Mounda")
-        print ("published to Response Megadish,Mounda")
+        client.publish("Response", ",".join(ssids))
+        #client.publish("Response", "Megadish,Mounda")
+        print ("published to Response " + ",".join(ssids))
     elif command=="GET-STORED":
         ssids = list_stored_ssids()
         client.publish("Response", ",".join(ssids))
