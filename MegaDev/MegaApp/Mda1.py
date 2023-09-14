@@ -53,5 +53,5 @@ class SSIDListApp(App):
         selected_ssid = value
         print(f"Selected SSID: {selected_ssid}")
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
     SSIDListApp().run()
