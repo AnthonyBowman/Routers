@@ -6,13 +6,17 @@ import paho.mqtt.client as mqtt
 import subprocess
 import re
 from WifiNetwork import WifiNetwork
-import piwifi
+import pywifi
 import logging
+import json
 
 # variables - MQTT broker details
 broker_address = "localhost"
 broker_port = 1883
 topic = "Command"
+
+# inteface variable
+interface_index = 0
 
 # path git pto wpa_supplicant.conf file
 wpa_supplicant_file = "/etc/wpa_supplicant/wpa_supplicant.conf"
@@ -31,14 +35,28 @@ def on_message(client, userdata, msg):
 def process_command (command, data):
     if command == "test":
         print("test")
-    elif command=="GET-SSIDS":
-        ssids = list_available_ssids("wlan0")  # Replace with the index of the desired interface
-        client.publish("Response", ",".join(ssids))
+    elif command=="GET-AVAILABLE":
+        # List available Wi-Fi profiles
+        available_profiles = list_available_profiles(interface_index) # 0 for wlan0
+
+        # Serialize the list of profiles to JSON
+        serialized_profiles = json.dumps(available_profiles)
+
+        #ssids = list_available_ssids("wlan0")  # Replace with the index of the desired interface
+        #client.publish("Response", ",".join(ssids))
         #client.publish("Response", "Megadish,Mounda")
-        print ("published to Response " + ",".join(ssids))
+        client.publish("Response", serialized_profiles)
+        #print ("published to Response " + ",".join(ssids))
     elif command=="GET-STORED":
-        ssids = list_stored_ssids()
-        client.publish("Response", ",".join(ssids))
+        # List stored Wi-Fi profiles
+        stored_profiles = list_stored_profiles(interface_index)
+
+        # Serialize the list of profiles to JSON
+        serialized_profiles = json.dumps(stored_profiles)
+
+        client.publish("Response", stored_profiles)
+        #ssids = list_stored_ssids()
+        #client.publish("Response", ",".join(ssids))
     else:
         print ("Command not recognised:" + command)
 
@@ -55,6 +73,27 @@ def list_available_ssids2(interface):
     iface.scan()
     ssids = [network.ssid for network in iface.scan_results() if network.ssid]
     return ssids
+
+def list_available_profiles(interface_index):
+    wifi = pywifi.PyWiFi()
+    iface = wifi.interfaces()[interface_index]
+    
+    # Perform a scan to retrieve available network information
+    iface.scan()
+    
+    # Retrieve and return available network profiles
+    available_profiles = list(iface.scan_results())
+    
+    return available_profiles
+
+def list_stored_profiles(interface_index):
+    wifi = pywifi.PyWiFi()
+    iface = wifi.interfaces()[interface_index]
+    
+    # Retrieve and return stored network profiles
+    stored_profiles = list(iface.network_profiles())
+    
+    return stored_profiles
 
 def list_stored_ssids():
     wifi_networks = load_wifi_networks(wpa_supplicant_file)
