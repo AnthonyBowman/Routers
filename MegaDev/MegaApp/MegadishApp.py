@@ -10,7 +10,7 @@ from kivy.uix.button import Button
 class MQTTClient(mqtt.Client):
     def on_connect(self, client, userdata, flags, rc):
         print("Connected with result code " + str(rc))
-        client.subscribe("wifi/details")
+        client.subscribe("Response")
 
     def on_message(self, client, userdata, msg):
         message = msg.payload.decode("utf-8")
@@ -47,20 +47,22 @@ class WiFiDetailsForm(BoxLayout):
 
         # Connect to the MQTT broker on the Raspberry Pi
         client = MQTTClient()
-        client.connect("raspberrypi", 1883, 60)
+        client.connect("127.0.0.1", 1883, 60)
 
         # Publish the Wi-Fi details to the topic "wifi/details"
-        client.publish("wifi/details", ssid + "," + password)
+        client.publish("Command", "USER-CHOICE, " + ssid + "-" + password)
         print("Wi-Fi details sent to Raspberry Pi.")
 
         # Disconnect from the MQTT broker
         client.disconnect()
 
     def list_wifi_details(self, *args):
-        client = MQTTClient()
-        client.connect("192.168.17.1", 1883, 60)
-        client.subscribe("wifi/ssids")
-        client_disconnect()
+        client = MQTTClient(client_id="MegadishApp")
+        client.on_connect = on_connect
+        
+        client.connect("127.0.0.1", 1883, 60)
+        client.subscribe("Response")
+        #client_disconnect()
 
     def display_ssids(self, ssids):
         self.root.clear_widgets()

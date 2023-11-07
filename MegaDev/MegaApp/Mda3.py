@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import time
 
 # MQTT broker details
-broker_address = "192.168.17.101"  # Update with your Mosquitto broker's address
+broker_address = "127.0.0.1"  # Update with your Mosquitto broker's address
 port = 1883
 
 # Callback function for when the client connects to the MQTT broker

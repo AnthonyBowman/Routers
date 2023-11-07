@@ -54,7 +54,7 @@ def process_command (command, data):
         # Serialize the list of profiles to JSON
         serialized_profiles = json.dumps(stored_profiles)
 
-        client.publish("Response", stored_profiles)
+        client.publish("Response", serialized_profiles)
         #ssids = list_stored_ssids()
         #client.publish("Response", ",".join(ssids))
     else:

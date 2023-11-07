@@ -1,5 +1,5 @@
 import subprocess
-import piwifi
+import pywifi
 
 def connect_to_wifi(ssid, password):
     try:
@@ -24,13 +24,12 @@ def connect_to_wifi(ssid, password):
         print(f"Error: {e}")
         print("Failed to connect to the network.")
 
-def check_known_ssid(ssid):
+#def check_known_ssid(ssid):
     # Check if the SSID is known in wpa_supplicant.conf
     # You can implement this function to read and search the configuration file
-    import piwifi
 
 def get_current_ssid():
-    wifi = piwifi.WiFi()
+    wifi = pywifi.WiFi()
     interfaces = wifi.interfaces()
 
     # Assuming you're using the first available interface
