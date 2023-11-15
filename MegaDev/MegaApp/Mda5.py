@@ -27,8 +27,8 @@ client.connect(broker_address, broker_port)
 client.subscribe(response_topic)
 
 # Publish command messages
-#client.publish(command_topic, "GET-AVAILABLE,data")
-client.publish(command_topic, "GET-STORED,data")
+client.publish(command_topic, "GET-AVAILABLE,data")
+#client.publish(command_topic, "GET-STORED,data")
 
 # Blocking loop to process network traffic
 client.loop_forever()

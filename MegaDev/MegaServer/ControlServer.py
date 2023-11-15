@@ -2,11 +2,13 @@
 # device, it then acts on those commands to 1) show SSIDs available 2) update
 # the wpa_supplicant.conf and 3) other things like reboot
 #
+import time
 import paho.mqtt.client as mqtt
 import subprocess
 import re
 from WifiNetwork import WifiNetwork
 import pywifi
+from pywifi import const
 import logging
 import json
 
@@ -46,7 +48,7 @@ def process_command (command, data):
         #client.publish("Response", ",".join(ssids))
         #client.publish("Response", "Megadish,Mounda")
         client.publish("Response", serialized_profiles)
-        #print ("published to Response " + ",".join(ssids))
+        print ("published to Response " + serialized_profiles)
     elif command=="GET-STORED":
         # List stored Wi-Fi profiles
         stored_profiles = list_stored_profiles(interface_index)
@@ -73,17 +75,34 @@ def list_available_ssids2(interface):
     iface.scan()
     ssids = [network.ssid for network in iface.scan_results() if network.ssid]
     return ssids
+ 
 
 def list_available_profiles(interface_index):
     wifi = pywifi.PyWiFi()
     iface = wifi.interfaces()[interface_index]
-    
+    available_profiles=[]
     # Perform a scan to retrieve available network information
     iface.scan()
-    
-    # Retrieve and return available network profiles
-    available_profiles = list(iface.scan_results())
-    
+
+    # Wait for the scan to complete or timeout after 10 seconds
+    start_time = time.time()
+    while True:
+        time.sleep(0.1)
+        if time.time() - start_time > 2:
+            print("Scan timeout reached. No networks found.")
+            break
+
+    print("Scan completed")
+    scan_results = iface.scan_results()
+
+    for network in scan_results:
+        json_network = {"ssid": network.ssid,
+                        "signal": network.signal,
+                        "connected": "false"
+                        # other attrs
+                       }
+        available_profiles.append(json_network)  
+
     return available_profiles
 
 def list_stored_profiles(interface_index):
@@ -148,7 +167,7 @@ def load_wifi_networks(file_path):
 
 # program start
 logging.basicConfig(level=logging.DEBUG)
-client = mqtt.Client(client_id="PiProgram")
+client = mqtt.Client(client_id="MegadishServer")
 client.on_connect = on_connect
 client.on_message = on_message
 
