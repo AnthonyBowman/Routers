@@ -28,32 +28,12 @@ import paho.mqtt.client as mqtt
 
 global global_ssids
 ssids = [
-            {"ssid": "", "signal": 0},
-
+            {"ssid": "Loading...", "signal": 0},
         ]
 global_ssids = ssids
 
 Builder.load_string('''
 #:import random random.random
-
-<CustomScreen>:
-    hue: random()
-    canvas:
-        Color:
-            hsv: self.hue, .5, .3
-        Rectangle:
-            size: self.size
-
-    Label:
-        font_size: 42
-        text: root.name
-
-    Button:
-        text: 'Next screen'
-        size_hint: None, None
-        pos_hint: {'right': 1}
-        size: 150, 50
-        on_release: root.manager.current = root.manager.next()
 
 <SelectableLabel>:
     # Draw a background to indicate selection
@@ -77,25 +57,22 @@ Builder.load_string('''
 <RVScreen>:
     BoxLayout:
         orientation: "vertical"
-        RV:
         Button:
             text: 'Refresh'
             size_hint: None, None
             size: 150, 50
-            on_release: root.refresh()
+            on_release: root.refresh_data()
 
 ''')
 
 
-class CustomScreen(Screen):
-    hue = NumericProperty(0)
-
 class PasswordPopup(Popup):
     ssid = ""
     
-    def __init__(self, ssid, **kwargs):
+    def __init__(self, ssid, app, **kwargs):
         super().__init__(**kwargs)
         self.ssid = ssid
+        self.app = app
         self.title = f"Enter password for {ssid}"
         
         layout = BoxLayout(orientation="vertical", spacing=10, size_hint=(.4, None))
@@ -111,6 +88,14 @@ class PasswordPopup(Popup):
     def connect(self, btn):
         print(f"Connecting to {self.ssid}")
         # TODO - connect logic
+
+        # Assuming self.app is your main app instance
+        if self.app:
+            # Send MQTT command
+            self.app.send_connect_command(self)
+
+        # Close the popup
+        self.dismiss()
 
 class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
                                  RecycleBoxLayout):
@@ -142,7 +127,7 @@ class SelectableLabel(RecycleDataViewBehavior, Label):
         if is_selected:
             print("selection changed to {0}".format(rv.data[index]))
             ssid = rv.data[index]['text']
-            popup = PasswordPopup(ssid)
+            popup = PasswordPopup(ssid, app=rv.app)
             popup.auto_dismiss = False
             popup.size_hint = (None, None)
             popup.size = (dp(500), dp(250))
@@ -153,24 +138,32 @@ class SelectableLabel(RecycleDataViewBehavior, Label):
 class RV(RecycleView):
     def __init__(self, **kwargs):
         super(RV, self).__init__(**kwargs)
-        #self.data = [{'text': str(x)} for x in range(10)]
-        #ssids = [
-         #   {"ssid": "PiLab", "signal": -60},
-        #    {"ssid": "LongBow", "signal": -70},
-        #    {"ssid": "Megadish", "signal": -80}
-        #]
-        self.data = [{'text': f"{ssid['ssid']} ({ssid['signal']} dBm)"} for ssid in global_ssids]
-        #self.data = [{'text': ssid['ssid']} for ssid in ssids]
+
+    def refresh (self):
+        data = []
+        for ssid in global_ssids:
+            for item in ssid:
+                text = f"{item['ssid']} ({item['signal']} dBm)" 
+                data.append({'text': text})
+        self.data = data  
 
 class RVScreen(Screen):
-    def refresh(self):
-        self.app.send_command(self)
-        time.sleep(0.5)
-        self.data = [{'text': f"{ssid['ssid']} ({ssid['signal']} dBm)"}  for ssid in global_ssids]
+    def __init__(self, rv, **kwargs):
+        super().__init__(**kwargs)
+        self.rv = rv
 
-    def mini_refresh(self):
-      self.rv.data = [{'text': f"{ssid['ssid']} ({ssid['signal']} dBm)"}  for ssid in global_ssids]
-        
+        # Assuming you have a BoxLayout as the root of RVScreen
+        layout = BoxLayout(orientation='vertical')
+        layout.add_widget(Button(text='Refresh', on_release=self.refresh_data))
+        layout.add_widget(self.rv)
+        self.add_widget(layout)
+
+    def refresh_data(self, instance):
+        self.app.send_command(self)
+
+    def refresh_view(self):
+        self.rv.refresh()
+
     pass
 
 class ScreenManagerApp(App):
@@ -180,6 +173,13 @@ class ScreenManagerApp(App):
         # Example: Put a command in the input queue
         cmd = ("GET-AVAILABLE","")
         self.in_q.put(cmd)
+
+    def send_connect_command (self, instance):
+        ssid = instance.ssid
+        password_input = instance.password_input.text
+        cmd = (f"CONNECT", f"{ssid} {password_input}")
+        self.in_q.put(cmd)
+
 
     def update_message(self, message):
         # This method is called from the MQTT thread to update the UI
@@ -199,12 +199,10 @@ class ScreenManagerApp(App):
             print("No SSIDs with 'ssid' key available.")
             return
         
-        global_ssids = full_ssids
-        self.lp_global_ssids = global_ssids
-        
-    
-        #ssid_popup = SSIDListPopup(ssids=self.ssids, callback=self.connect_to_ssid)
-        #ssid_popup.open()
+        global global_ssids
+        global_ssids = full_ssids       
+
+        self.rvscreen.refresh_view()
 
     def show_received_profiles(self, text):
         # Assuming 'text' is a string representing JSON data
@@ -230,10 +228,12 @@ class ScreenManagerApp(App):
 
         self.send_command(self)
 
-        self.rvscreen = RVScreen()
+        self.rv = RV()
+        self.rv.app = self
+        self.rvscreen = RVScreen(rv=self.rv)
         self.rvscreen.app = self
+
         root = ScreenManager()
-        #root.add_widget(CustomScreen(name='CustomScreen'))
         root.add_widget(self.rvscreen)
         return root
         
@@ -252,6 +252,7 @@ class MQTTWorker(threading.Thread):
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
             Logger.info("Connected to MQTT broker successfully")
+
             # Subscribe to topics or perform other on-connect actions if needed
             client.subscribe("Response")
         else:
@@ -273,12 +274,6 @@ class MQTTWorker(threading.Thread):
 
         while True:
             try:
-                # Blocking call to get a command from the input queue
-                #command = self.in_q.get()
-                
-                # Publish the command
-                #self.client.publish("Command", command)
-
                 command_tuple = self.in_q.get() # Gets command from Kivy       
                 command_string = ",".join(map(str, command_tuple))
                 self.client.publish("Command", command_string)                
@@ -289,7 +284,7 @@ class MQTTWorker(threading.Thread):
             except KeyboardInterrupt:
                 break
 
-        # Stop the network loop before exiting
+        # Stop the network loop before exiting``
         self.client.loop_stop()
 
 if __name__ == '__main__':
