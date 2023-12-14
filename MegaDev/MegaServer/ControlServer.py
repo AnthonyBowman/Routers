@@ -1,5 +1,4 @@
-# Control server - takes commands from a kviy app running on a remote
-# device, it then acts on those commands to 1) show SSIDs available 2) update
+# Control server - takes commands from a kviy app running on a rem# device, it then acts on those commands to 1) show SSIDs available 2) update
 # the wpa_supplicant.conf and 3) other things like reboot
 #
 import time
@@ -11,6 +10,7 @@ import pywifi
 from pywifi import const
 import logging
 import json
+from pydbus import SystemBus
 
 # variables - MQTT broker details
 broker_address = "localhost"
@@ -59,9 +59,34 @@ def process_command (command, data):
         client.publish("Response", serialized_profiles)
         #ssids = list_stored_ssids()
         #client.publish("Response", ",".join(ssids))
+    elif command=="CONNECT":
+        input_data = data.split(':')
+
+        pass
     else:
         print ("Command not recognised:" + command)
 
+def connect_to_wifi(ssid, password):
+    try:
+        bus = SystemBus()
+        nm = bus.get("org.freedesktop.NetworkManager")
+        device = nm.GetDeviceByIpIface("wlan0")  # Adjust the interface name as needed
+
+        # Create a new connection
+        connection = nm.AddAndActivateConnection({
+            "802-11-wireless": {"ssid": dbus.ByteArray(ssid.encode())},
+            "802-11-wireless-security": {"key-mgmt": "wpa-psk"},
+            "ipv4": {"method": "auto"},
+            "ipv6": {"method": "auto"},
+            "802-11-wireless-security.psk": dbus.ByteArray(password.encode())
+        }, device)
+
+        print("Connected to Wi-Fi successfully.")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        print("Failed to connect to Wi-Fi.")
+        
 # command functions
 def list_available_ssids(interface):
     command = f"sudo iwlist {interface} scan | grep ESSID"
