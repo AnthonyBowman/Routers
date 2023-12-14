@@ -1,6 +1,8 @@
 # Control server - takes commands from a kviy app running on a rem# device, it then acts on those commands to 1) show SSIDs available 2) update
 # the wpa_supplicant.conf and 3) other things like reboot
 #
+import sys
+
 import time
 import paho.mqtt.client as mqtt
 import subprocess
@@ -191,6 +193,7 @@ def load_wifi_networks(file_path):
     return networks
 
 # program start
+print (sys.path)
 logging.basicConfig(level=logging.DEBUG)
 client = mqtt.Client(client_id="MegadishServer")
 client.on_connect = on_connect

@@ -177,7 +177,7 @@ class ScreenManagerApp(App):
     def send_connect_command (self, instance):
         ssid = instance.ssid
         password_input = instance.password_input.text
-        cmd = (f"CONNECT", f"{ssid} {password_input}")
+        cmd = (f"CONNECT", f"{ssid}:{password_input}")
         self.in_q.put(cmd)
 
 
