@@ -195,7 +195,7 @@ def load_wifi_networks(file_path):
 # program start
 print (sys.path)
 logging.basicConfig(level=logging.DEBUG)
-client = mqtt.Client(client_id="MegadishServer")
+client = mqtt.Client(client_id="MegadishServe")
 client.on_connect = on_connect
 client.on_message = on_message
 
